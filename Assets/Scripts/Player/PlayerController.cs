@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     public float rotationSpeed = 3f;
     public Transform cameraTransform;
     public Camera playerCamera;
+    public Camera weaponCamera;
     public float fovSpeed = 5f;
 
     private CharacterController controller;
@@ -55,10 +56,6 @@ public class PlayerController : MonoBehaviour
                 runSpeed = 7f;
                 walkSpeed = 3f;
             }
-            if (speed >= 15)
-            {
-                runSpeed = 20;
-            }
         }
         if (isCrouched == false)
         {
@@ -89,11 +86,13 @@ public class PlayerController : MonoBehaviour
         {
             speed = runSpeed;
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 65, fovSpeed * Time.deltaTime);
+            weaponCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 65, fovSpeed * Time.deltaTime);
         }
         else
         {
             speed = walkSpeed;
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, fovSpeed * Time.deltaTime);
+            weaponCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, fovSpeed * Time.deltaTime);
         }
     }
     private void MoveChar()
