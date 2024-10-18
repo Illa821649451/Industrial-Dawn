@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
         MoveChar();
         Crouch();
     }
-
+    
     private void Crouch()
     {
         if (Input.GetKeyDown(KeyCode.LeftControl))
