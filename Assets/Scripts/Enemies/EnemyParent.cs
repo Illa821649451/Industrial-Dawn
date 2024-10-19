@@ -13,11 +13,13 @@ public class EnemyParent : MonoBehaviour
 
     protected NavMeshAgent agent;
     [SerializeField] protected List<Vector3> patrolPoints;
-    protected int currentPatrolIndex;
+    [SerializeField] protected int currentPatrolIndex;
     private bool goingForward = false;
+    private bool changingPoint = false;
 
     protected Slider DetectionSlider;
     protected bool isDetected = false;
+    protected bool playerInTrigger;
     public int Health
     {
         get { return health; }
@@ -42,43 +44,68 @@ public class EnemyParent : MonoBehaviour
     public void Update()
     {
         PathWalking();
-        if(DetectionSlider.value == int.MaxValue)
+        if(!playerInTrigger && !isDetected)
         {
-            isDetected = true;
-        }
+            DetectionSlider.value -= 1;
+        } 
     }
     public virtual void PathWalking()
     {
-        if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+        if (agent.remainingDistance == agent.stoppingDistance && !agent.pathPending && changingPoint == false)
         {
-            if (goingForward)
-            {
-                currentPatrolIndex++;
-                if (currentPatrolIndex >= patrolPoints.Count)
-                {
-                    currentPatrolIndex = patrolPoints.Count - 1;
-                    goingForward = false;
-                }
-            }
-            else
-            {
-                currentPatrolIndex--;
-                if (currentPatrolIndex < 0)
-                {
-                    currentPatrolIndex = 0;
-                    goingForward = true;
-                }
-            }
+            changingPoint = true;
+            StartCoroutine(WalkingDelay());
+            
+        }
+    }
 
-            agent.SetDestination(patrolPoints[currentPatrolIndex]);
+    IEnumerator WalkingDelay()
+    {
+        yield return new WaitForSeconds(3f);
+        if (goingForward)
+        {
+            currentPatrolIndex++;
+            if (currentPatrolIndex >= patrolPoints.Count)
+            {
+                currentPatrolIndex = patrolPoints.Count - 1;
+                goingForward = false;
+            }
+        }
+        else
+        {
+            currentPatrolIndex--;
+            if (currentPatrolIndex < 0)
+            {
+                currentPatrolIndex = 0;
+                goingForward = true;
+            }
+        }
+        agent.SetDestination(patrolPoints[currentPatrolIndex]);
+        changingPoint = false;
+    }
+    public virtual void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Player"))
+        {
+            playerInTrigger = true;
         }
     }
     public virtual void OnTriggerStay(Collider other)
     {
-        Debug.Log(other.gameObject.name);
-        while (other.gameObject.CompareTag("Player") && !isDetected)
+        if(!isDetected && playerInTrigger)
         {
             DetectionSlider.value += 1;
+            if (DetectionSlider.value >= DetectionSlider.maxValue)
+            {
+                isDetected = true;
+            }
+        }
+    }
+    public virtual void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("Player"))
+        {
+            playerInTrigger = false;
         }
     }
 
