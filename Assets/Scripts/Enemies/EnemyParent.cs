@@ -13,7 +13,7 @@ public class EnemyParent : MonoBehaviour
 
     protected NavMeshAgent agent;
     [SerializeField] protected List<Vector3> patrolPoints;
-    [SerializeField] protected int currentPatrolIndex;
+    protected int currentPatrolIndex;
     private bool goingForward = false;
     private bool changingPoint = false;
 
@@ -95,6 +95,11 @@ public class EnemyParent : MonoBehaviour
         if(!isDetected && playerInTrigger)
         {
             DetectionSlider.value += 1;
+            agent.isStopped = true;
+            if(agent.isStopped == true)
+            {
+                transform.LookAt(other.transform.position);
+            }
             if (DetectionSlider.value >= DetectionSlider.maxValue)
             {
                 isDetected = true;
@@ -106,6 +111,7 @@ public class EnemyParent : MonoBehaviour
         if (other.gameObject.CompareTag("Player"))
         {
             playerInTrigger = false;
+            agent.isStopped = false;
         }
     }
 
