@@ -1,18 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class EnemyParent : MonoBehaviour
 {
     [Header("Enemy parameters")]
     [SerializeField] protected int health;
 
-    [Header("Path following")]
+
     protected NavMeshAgent agent;
-    [SerializeField] protected Vector3[] patrolPoints;
+    [SerializeField] protected List<Vector3> patrolPoints;
     protected int currentPatrolIndex;
-    private bool goingForward = true;
+    private bool goingForward = false;
+
+    protected Slider DetectionSlider;
+    protected bool isDetected = false;
     public int Health
     {
         get { return health; }
@@ -28,9 +33,19 @@ public class EnemyParent : MonoBehaviour
             }
         }
     }
-    private void Start()
+    public virtual void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        GameObject slider = transform.Find("Canvas/DetectionSlider").gameObject;
+        DetectionSlider = slider.GetComponent<Slider>();
+    }
+    public void Update()
+    {
+        PathWalking();
+        if(DetectionSlider.value == int.MaxValue)
+        {
+            isDetected = true;
+        }
     }
     public virtual void PathWalking()
     {
@@ -38,17 +53,15 @@ public class EnemyParent : MonoBehaviour
         {
             if (goingForward)
             {
-                // Перехід до наступної точки в напрямку вперед
                 currentPatrolIndex++;
-                if (currentPatrolIndex >= patrolPoints.Length)
+                if (currentPatrolIndex >= patrolPoints.Count)
                 {
-                    currentPatrolIndex = patrolPoints.Length - 1;
+                    currentPatrolIndex = patrolPoints.Count - 1;
                     goingForward = false;
                 }
             }
             else
             {
-                // Перехід до наступної точки в напрямку назад
                 currentPatrolIndex--;
                 if (currentPatrolIndex < 0)
                 {
@@ -60,6 +73,15 @@ public class EnemyParent : MonoBehaviour
             agent.SetDestination(patrolPoints[currentPatrolIndex]);
         }
     }
+    public virtual void OnTriggerStay(Collider other)
+    {
+        Debug.Log(other.gameObject.name);
+        while (other.gameObject.CompareTag("Player") && !isDetected)
+        {
+            DetectionSlider.value += 1;
+        }
+    }
+
     public virtual void TakeDamage(int damageValue)
     {
         Health -= damageValue;
