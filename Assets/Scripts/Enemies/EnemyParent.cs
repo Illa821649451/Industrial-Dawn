@@ -9,13 +9,14 @@ public class EnemyParent : MonoBehaviour
 {
     [Header("Enemy parameters")]
     [SerializeField] protected int health;
-
+    [SerializeField] protected bool isElite;
 
     protected NavMeshAgent agent;
     [SerializeField] protected List<Vector3> patrolPoints;
     protected int currentPatrolIndex;
     private bool goingForward = false;
     private bool changingPoint = false;
+    private bool goingToLastKnown;
 
     protected Slider DetectionSlider;
     protected bool isDetected = false;
@@ -47,15 +48,21 @@ public class EnemyParent : MonoBehaviour
         if(!playerInTrigger && !isDetected)
         {
             DetectionSlider.value -= 1;
-        } 
+        }
+        if (goingToLastKnown)
+        {
+            if (agent.remainingDistance == 0)
+            {
+                StartCoroutine(InspectingDelay());
+            }
+        }
     }
     public virtual void PathWalking()
     {
         if (agent.remainingDistance == agent.stoppingDistance && !agent.pathPending && changingPoint == false)
         {
             changingPoint = true;
-            StartCoroutine(WalkingDelay());
-            
+            StartCoroutine(WalkingDelay());           
         }
     }
 
@@ -112,9 +119,22 @@ public class EnemyParent : MonoBehaviour
         {
             playerInTrigger = false;
             agent.isStopped = false;
+            if (isElite)
+            {
+                changingPoint = true;
+                agent.SetDestination(new Vector3(other.transform.position.x, other.transform.position.y, other.transform.position.z));
+                goingToLastKnown = true;
+            }
         }
     }
-
+     
+    IEnumerator InspectingDelay()
+    {
+        goingToLastKnown = false;
+        yield return new WaitForSeconds(5);
+        agent.SetDestination(patrolPoints[currentPatrolIndex]);
+        changingPoint = false;
+    }
     public virtual void TakeDamage(int damageValue)
     {
         Health -= damageValue;
