@@ -18,9 +18,20 @@ public class EnemyParent : MonoBehaviour
     private bool changingPoint = false;
     private bool goingToLastKnown;
 
+    public float radius;
+    [Range(0, 360)]
+    public float angle;
+
+    public GameObject playerRef;
+    public Vector3 lastKnownPosition;
+
+    public LayerMask targetMask;
+    public LayerMask obstructionMask;
+
+    public bool canSeePlayer;
+
     protected Slider DetectionSlider;
     protected bool isDetected = false;
-    protected bool playerInTrigger;
     public int Health
     {
         get { return health; }
@@ -40,15 +51,65 @@ public class EnemyParent : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         GameObject slider = transform.Find("Canvas/DetectionSlider").gameObject;
+        playerRef = GameObject.FindGameObjectWithTag("Player");
+        StartCoroutine(FOVRoutine());
         DetectionSlider = slider.GetComponent<Slider>();
+    }
+    public virtual IEnumerator FOVRoutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(0.2f);
+
+        while (true)
+        {
+            yield return wait;
+            FieldOfViewCheck();
+        }
+    }
+    public virtual void FieldOfViewCheck()
+    {
+        Collider[] rangeChecks = Physics.OverlapSphere(new Vector3(transform.position.x, transform.position.y + 2.34f, transform.position.z), radius, targetMask);
+
+        if (rangeChecks.Length != 0)
+        {
+            Transform target = rangeChecks[0].transform;
+            Vector3 directionToTarget = (target.position - transform.position).normalized;
+
+            if (Vector3.Angle(transform.forward, directionToTarget) < angle / 2)
+            {
+                float distanceToTarget = Vector3.Distance(transform.position, target.position);
+
+                if (!Physics.Raycast(transform.position, directionToTarget, distanceToTarget, obstructionMask))
+                {
+                    canSeePlayer = true;
+                    lastKnownPosition = playerRef.transform.position;
+                }
+                else
+                {
+                    canSeePlayer = false;
+                }
+            }
+            else
+            {
+                canSeePlayer = false;
+            }
+
+        }
+        else if (canSeePlayer)
+        {
+            if (isElite)
+            {
+                changingPoint = true;
+                agent.SetDestination(lastKnownPosition);
+                goingToLastKnown = true;
+            }
+            canSeePlayer = false;
+        }
+
     }
     public void Update()
     {
         PathWalking();
-        if(!playerInTrigger && !isDetected)
-        {
-            DetectionSlider.value -= 1;
-        }
+        PatrolingArea();
         if (goingToLastKnown)
         {
             if (agent.remainingDistance == 0)
@@ -57,77 +118,66 @@ public class EnemyParent : MonoBehaviour
             }
         }
     }
-    public virtual void PathWalking()
+    public virtual void PatrolingArea()
     {
-        if (agent.remainingDistance == agent.stoppingDistance && !agent.pathPending && changingPoint == false)
+        if (canSeePlayer && !isDetected)
         {
-            changingPoint = true;
-            StartCoroutine(WalkingDelay());           
-        }
-    }
-
-    IEnumerator WalkingDelay()
-    {
-        yield return new WaitForSeconds(3f);
-        if (goingForward)
-        {
-            currentPatrolIndex++;
-            if (currentPatrolIndex >= patrolPoints.Count)
-            {
-                currentPatrolIndex = patrolPoints.Count - 1;
-                goingForward = false;
-            }
-        }
-        else
-        {
-            currentPatrolIndex--;
-            if (currentPatrolIndex < 0)
-            {
-                currentPatrolIndex = 0;
-                goingForward = true;
-            }
-        }
-        agent.SetDestination(patrolPoints[currentPatrolIndex]);
-        changingPoint = false;
-    }
-    public virtual void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("Player"))
-        {
-            playerInTrigger = true;
-        }
-    }
-    public virtual void OnTriggerStay(Collider other)
-    {
-        if(!isDetected && playerInTrigger)
-        {
-            DetectionSlider.value += 1;
+            //DetectionSlider.value += 1;
             agent.isStopped = true;
-            if(agent.isStopped == true)
+            if (agent.isStopped == true)
             {
-                transform.LookAt(other.transform.position);
+                Vector3 lookPosition = new Vector3(playerRef.transform.position.x, transform.position.y, playerRef.transform.position.z);
+                transform.LookAt(lookPosition);
             }
             if (DetectionSlider.value >= DetectionSlider.maxValue)
             {
                 isDetected = true;
             }
         }
-    }
-    public virtual void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.CompareTag("Player"))
+        else if (!canSeePlayer)
         {
-            playerInTrigger = false;
+            DetectionSlider.value -= 1;
             agent.isStopped = false;
-            if (isElite)
-            {
-                changingPoint = true;
-                agent.SetDestination(new Vector3(other.transform.position.x, other.transform.position.y, other.transform.position.z));
-                goingToLastKnown = true;
-            }
         }
     }
-     
+    public virtual void PathWalking()
+    {
+        if (agent.remainingDistance == agent.stoppingDistance && !agent.pathPending && changingPoint == false)
+        {
+            changingPoint = true;
+            StartCoroutine(WalkingDelay());
+        }
+    }
+
+    IEnumerator WalkingDelay()
+    {
+        yield return new WaitForSeconds(3f);
+        if (!goingToLastKnown)
+        {
+            if (goingForward)
+            {
+                currentPatrolIndex++;
+                if (currentPatrolIndex >= patrolPoints.Count)
+                {
+                    currentPatrolIndex = patrolPoints.Count - 1;
+                    goingForward = false;
+                }
+            }
+            else
+            {
+                currentPatrolIndex--;
+                if (currentPatrolIndex < 0)
+                {
+                    currentPatrolIndex = 0;
+                    goingForward = true;
+                }
+            }
+            agent.SetDestination(patrolPoints[currentPatrolIndex]);
+            changingPoint = false;
+        }
+        else { yield return null; }
+    }
+
     IEnumerator InspectingDelay()
     {
         goingToLastKnown = false;

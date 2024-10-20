@@ -2735,7 +2735,7 @@ GameObject:
   - component: {fileID: 705467512}
   - component: {fileID: 705467511}
   - component: {fileID: 705467510}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3179,7 +3179,7 @@ GameObject:
   - component: {fileID: 828655811}
   - component: {fileID: 828655809}
   - component: {fileID: 828655812}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CameraMain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4323,7 +4323,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1167224691}
   - component: {fileID: 1167224693}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CameraHands
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9120,7 +9120,6 @@ GameObject:
   - component: {fileID: 543450651646163903}
   - component: {fileID: 919132147995025671}
   - component: {fileID: 919132147995025670}
-  - component: {fileID: 919132147995025672}
   m_Layer: 0
   m_Name: EnemyRevolver
   m_TagString: Untagged
@@ -9168,27 +9167,17 @@ MonoBehaviour:
   - {x: -7, y: 0, z: 17}
   - {x: -25, y: 0, z: 15}
   - {x: -25, y: 0, z: 0}
---- !u!65 &919132147995025672
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 919132147995025669}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
+  radius: 10
+  angle: 100
+  playerRef: {fileID: 0}
+  lastKnownPosition: {x: 0, y: 0, z: 0}
+  targetMask:
     serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
+    m_Bits: 8
+  obstructionMask:
     serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4, y: 1.4380629, z: 8}
-  m_Center: {x: 0, y: 4.1409693, z: 4}
+    m_Bits: 1
+  canSeePlayer: 0
 --- !u!4 &963502747988781563
 Transform:
   m_ObjectHideFlags: 0
@@ -14610,7 +14599,7 @@ Transform:
   m_GameObject: {fileID: 6393037898874767783}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -33.92, y: 0.1, z: -1}
+  m_LocalPosition: {x: -2.87, y: 0.1, z: 24.28}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14901,7 +14890,7 @@ GameObject:
   - component: {fileID: 6393037898874767785}
   - component: {fileID: 6393037898874767786}
   - component: {fileID: 6393037898874767784}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
