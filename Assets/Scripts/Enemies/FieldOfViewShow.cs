@@ -8,7 +8,7 @@ public class FieldOfViewShow : Editor
     {
         
         EnemyRevolver fov = (EnemyRevolver)target;
-        Vector3 posForDrawing = new Vector3(fov.transform.position.x, fov.transform.position.y + 3, fov.transform.position.z);
+        Vector3 posForDrawing = new Vector3(fov.transform.position.x, fov.transform.position.y + 3.5f, fov.transform.position.z);
         Handles.color = Color.white;
         Handles.DrawWireArc(posForDrawing, Vector3.up, Vector3.forward, 360, fov.radius);
 

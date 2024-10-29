@@ -7,8 +7,9 @@ using UnityEngine.UI;
 
 public class EnemyParent : MonoBehaviour
 {
+    protected static List<EnemyParent> allEnemies = new List<EnemyParent>();
+
     [Header("Enemy parameters")]
-    [SerializeField] protected int health;
     [SerializeField] protected bool isElite;
 
     protected NavMeshAgent agent;
@@ -32,23 +33,9 @@ public class EnemyParent : MonoBehaviour
 
     protected Slider DetectionSlider;
     protected bool isDetected = false;
-    public int Health
-    {
-        get { return health; }
-        set
-        {
-            if (value <= 0)
-            {
-                Destroy(gameObject);
-            }
-            else
-            {
-                health = value;
-            }
-        }
-    }
     public virtual void Start()
     {
+        allEnemies.Add(this);
         agent = GetComponent<NavMeshAgent>();
         GameObject slider = transform.Find("Canvas/DetectionSlider").gameObject;
         playerRef = GameObject.FindGameObjectWithTag("Player");
@@ -67,7 +54,7 @@ public class EnemyParent : MonoBehaviour
     }
     public virtual void FieldOfViewCheck()
     {
-        Collider[] rangeChecks = Physics.OverlapSphere(new Vector3(transform.position.x, transform.position.y + 2.34f, transform.position.z), radius, targetMask);
+        Collider[] rangeChecks = Physics.OverlapSphere(new Vector3(transform.position.x, transform.position.y + 3.5f, transform.position.z), radius, targetMask);
 
         if (rangeChecks.Length != 0)
         {
@@ -106,7 +93,7 @@ public class EnemyParent : MonoBehaviour
         }
 
     }
-    public void Update()
+    public virtual void Update()
     {
         PathWalking();
         PatrolingArea();
@@ -122,7 +109,7 @@ public class EnemyParent : MonoBehaviour
     {
         if (canSeePlayer && !isDetected)
         {
-            DetectionSlider.value += 1 * Time.deltaTime;
+            DetectionSlider.value += 1;
             agent.isStopped = true;
             if (agent.isStopped == true)
             {
@@ -132,11 +119,12 @@ public class EnemyParent : MonoBehaviour
             if (DetectionSlider.value >= DetectionSlider.maxValue)
             {
                 isDetected = true;
+                SetDetectionForAll();
             }
         }
         else if (!canSeePlayer)
         {
-            DetectionSlider.value -= 1 * Time.deltaTime;
+            DetectionSlider.value -= 1;
             agent.isStopped = false;
         }
     }
@@ -185,8 +173,15 @@ public class EnemyParent : MonoBehaviour
         agent.SetDestination(patrolPoints[currentPatrolIndex]);
         changingPoint = false;
     }
-    public virtual void TakeDamage(int damageValue)
+    public static void SetDetectionForAll()
     {
-        Health -= damageValue;
+        foreach (var enemy in allEnemies)
+        {
+            enemy.isDetected = true;
+        }
+    }
+    public virtual void OnDestroy()
+    {
+        allEnemies.Remove(this);
     }
 }
