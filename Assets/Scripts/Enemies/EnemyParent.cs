@@ -122,7 +122,7 @@ public class EnemyParent : MonoBehaviour
     {
         if (canSeePlayer && !isDetected)
         {
-            //DetectionSlider.value += 1;
+            DetectionSlider.value += 1 * Time.deltaTime;
             agent.isStopped = true;
             if (agent.isStopped == true)
             {
@@ -136,7 +136,7 @@ public class EnemyParent : MonoBehaviour
         }
         else if (!canSeePlayer)
         {
-            DetectionSlider.value -= 1;
+            DetectionSlider.value -= 1 * Time.deltaTime;
             agent.isStopped = false;
         }
     }

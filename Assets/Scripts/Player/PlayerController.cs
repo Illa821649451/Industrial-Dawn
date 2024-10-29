@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public bool isKilling;
     public float speed = 5f;
     private float walkSpeed, runSpeed;
     public float jumpSpeed = 10f;
@@ -35,10 +36,13 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        RotateChar();
-        Stamina();
-        MoveChar();
-        Crouch();
+        if (!isKilling)
+        {
+            RotateChar();
+            Stamina();
+            MoveChar();
+            Crouch();
+        }        
     }
     
     private void Crouch()
