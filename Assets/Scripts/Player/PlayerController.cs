@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     public float jumpSpeed = 10f;
     public float gravity = 20f;
     public float rotationSpeed = 3f;
+    public float slideForce = 5f;
     public Transform cameraTransform;
     public Camera playerCamera;
     public Camera weaponCamera;
@@ -26,6 +27,9 @@ public class PlayerController : MonoBehaviour
     public Vector3 offset;
     public Transform player;
 
+    public float moveHorizontal;
+    public float moveVertical;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,13 +42,23 @@ public class PlayerController : MonoBehaviour
     {
         if (!isKilling)
         {
+            Slide();
             RotateChar();
             Stamina();
-            MoveChar();
+            //MoveChar();
             Crouch();
         }        
     }
     
+    private void Slide()
+    {
+        if (Input.GetKey(KeyCode.C))
+        {
+            //moveDirection = transform.forward * slideForce * Time.deltaTime;
+            transform.Translate(transform.forward * -1f * slideForce * Time.deltaTime);
+            Debug.Log("C pressed");
+        }
+    }
     private void Crouch()
     {
         if (Input.GetKeyDown(KeyCode.LeftControl))
@@ -81,7 +95,8 @@ public class PlayerController : MonoBehaviour
         rotationX += Input.GetAxis("Mouse X") * rotationSpeed;
         rotationY -= Input.GetAxis("Mouse Y") * rotationSpeed;
         rotationY = Mathf.Clamp(rotationY, -90f, 80f);
-        transform.localRotation = Quaternion.Euler(0f, rotationX, 0f);
+        //transform.localRotation = Quaternion.Euler(0f, rotationX, 0f);
+        transform.Rotate(0, rotationX * Time.deltaTime , 0);
         cameraTransform.localRotation = Quaternion.Euler(rotationY, 0f, 0f);
     }
     private void Stamina()
@@ -99,7 +114,7 @@ public class PlayerController : MonoBehaviour
             weaponCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, fovSpeed * Time.deltaTime);
         }
     }
-    private void MoveChar()
+    /*private void MoveChar()
     {
         if (controller.isGrounded)
         {
@@ -112,9 +127,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Рух по горизонталі
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        moveHorizontal = Input.GetAxis("Horizontal");
+        moveVertical = Input.GetAxis("Vertical");
 
         Vector3 horizontalMovement = new Vector3(moveHorizontal, 0.0f, moveVertical);
         horizontalMovement = transform.TransformDirection(horizontalMovement);
@@ -126,7 +140,7 @@ public class PlayerController : MonoBehaviour
         moveDirection.y -= gravity * Time.deltaTime;
 
         controller.Move(moveDirection * Time.deltaTime);
-    }
+    }*/
 
 }
 
