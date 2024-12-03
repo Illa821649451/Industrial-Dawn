@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LedgeGrabbingDownloaded : MonoBehaviour
+public class PlayerClimbing : MonoBehaviour
 {
     [Header("References")]
-    public PlayerMovementDownloaded pm;
+    public PlayerMovementAdvanced pm;
     public Transform orientation;
     public Transform cam;
     public Rigidbody rb;
@@ -51,6 +51,7 @@ public class LedgeGrabbingDownloaded : MonoBehaviour
         float verticalInput = Input.GetAxisRaw("Vertical");
         bool anyInputKeyPressed = horizontalInput != 0 || verticalInput != 0;
 
+        // SubState 1 - Holding onto ledge
         if (holding)
         {
             FreezeRigidbodyOnLedge();
@@ -62,6 +63,7 @@ public class LedgeGrabbingDownloaded : MonoBehaviour
             if (Input.GetKeyDown(jumpKey)) LedgeJump();
         }
 
+        // Substate 2 - Exiting Ledge
         else if (exitingLedge)
         {
             if (exitLedgeTimer > 0) exitLedgeTimer -= Time.deltaTime;
@@ -117,18 +119,21 @@ public class LedgeGrabbingDownloaded : MonoBehaviour
         Vector3 directionToLedge = currLedge.position - transform.position;
         float distanceToLedge = Vector3.Distance(transform.position, currLedge.position);
 
-        if(distanceToLedge > 1f)
+        // Move player towards ledge
+        if (distanceToLedge > 1f)
         {
-            if(rb.velocity.magnitude < moveToLedgeSpeed)
+            if (rb.velocity.magnitude < moveToLedgeSpeed)
                 rb.AddForce(directionToLedge.normalized * moveToLedgeSpeed * 1000f * Time.deltaTime);
         }
 
+        // Hold onto ledge
         else
         {
             if (!pm.freeze) pm.freeze = true;
             if (pm.unlimited) pm.unlimited = false;
         }
 
+        // Exiting if something goes wrong
         if (distanceToLedge > maxLedgeGrabDistance) ExitLedgeHold();
     }
 

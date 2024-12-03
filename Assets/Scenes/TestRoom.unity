@@ -8811,9 +8811,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1824803540}
-  - component: {fileID: 1824803546}
-  - component: {fileID: 1824803545}
+  - component: {fileID: 1824803543}
   - component: {fileID: 1824803544}
+  - component: {fileID: 1824803545}
   - component: {fileID: 1824803539}
   m_Layer: 0
   m_Name: Player
@@ -8860,13 +8860,50 @@ Transform:
   m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
   m_LocalPosition: {x: 23.04, y: 2.35, z: -18.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1262596988}
   - {fileID: 500514491}
   - {fileID: 291852714}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+--- !u!114 &1824803543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824803538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02b1e95fb401594489e58b0b84c00578, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkSpeed: 7
+  sprintSpeed: 10
+  slideSpeed: 30
+  speedIncreaseMultiplier: 1.5
+  slopeIncreaseMultiplier: 2.5
+  groundDrag: 4
+  jumpForce: 5
+  jumpCooldown: 0.25
+  airMultiplier: 0
+  crouchSpeed: 3.5
+  crouchYScale: 0.5
+  jumpKey: 32
+  sprintKey: 304
+  crouchKey: 99
+  playerHeight: 2
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 1
+  maxSlopeAngle: 50
+  orientation: {fileID: 500514491}
+  state: 0
+  sliding: 0
+  freeze: 0
+  unlimited: 0
+  restricted: 0
 --- !u!114 &1824803544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8876,27 +8913,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1824803538}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93e187669d9fe9b469999c14180780ce, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b39a4be0b2daeb41a5c19de883135f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pm: {fileID: 1824803546}
   orientation: {fileID: 500514491}
-  cam: {fileID: 1045304073}
-  rb: {fileID: 1824803539}
-  moveToLedgeSpeed: 12
-  maxLedgeGrabDistance: 2
-  minTimeOnLedge: 0.5
-  holding: 0
-  jumpKey: 32
-  ledgeJumpForwardForce: 14
-  ledgeJumpUpwardForce: 5
-  ledgeDetectionLength: 3
-  ledgeSphereCastRadius: 0.5
-  whatIsLedge:
-    serializedVersion: 2
-    m_Bits: 512
-  exitingLedge: 0
-  exitLedgeTime: 0.2
+  playerObj: {fileID: 1262596988}
+  maxSlideTime: 0.7
+  slideForce: 200
+  slideYScale: 0.5
+  slideKey: 306
 --- !u!114 &1824803545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8906,54 +8931,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 1824803538}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97710bf68e60e034393ba4569cc3d989, type: 3}
+  m_Script: {fileID: 11500000, guid: 706082506d34efd4c8495a2f0cd45066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pm: {fileID: 1824803543}
   orientation: {fileID: 500514491}
-  playerObj: {fileID: 1262596988}
-  maxSlideTime: 0.75
-  slideForce: 200
-  slideYScale: 0.5
-  slideKey: 306
---- !u!114 &1824803546
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824803538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0689baaddf55d664d97101f90b106f7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 0
-  walkSpeed: 5
-  sprintSpeed: 7
-  slideSpeed: 10
-  speedIncreaseMultiplier: 1.5
-  slopeIncreaseMultiplier: 2.5
-  groundDrag: 4
-  jumpForce: 12
-  jumpCooldown: 0.25
-  airMultiplier: 0.4
-  crouchSpeed: 3.5
-  crouchYScale: 0.5
+  cam: {fileID: 1045304073}
+  rb: {fileID: 1824803539}
+  moveToLedgeSpeed: 12
+  maxLedgeGrabDistance: 2
+  minTimeOnLedge: 0.5
+  holding: 0
   jumpKey: 32
-  sprintKey: 304
-  crouchKey: 99
-  playerHeight: 2.2
-  whatIsGround:
+  ledgeJumpForwardForce: 5
+  ledgeJumpUpwardForce: 5
+  ledgeDetectionLength: 3
+  ledgeSphereCastRadius: 0.5
+  whatIsLedge:
     serializedVersion: 2
-    m_Bits: 1
-  maxSlopeAngle: 50
-  orientation: {fileID: 500514491}
-  state: 0
-  sliding: 0
-  climbing: 0
-  freeze: 0
-  unlimited: 0
-  restricted: 0
+    m_Bits: 512
+  exitingLedge: 0
+  exitLedgeTime: 0.2
 --- !u!1 &1830802111
 GameObject:
   m_ObjectHideFlags: 0

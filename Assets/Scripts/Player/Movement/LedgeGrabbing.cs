@@ -5,7 +5,7 @@ using UnityEngine;
 public class LedgeGrabbing : MonoBehaviour
 {
     [Header("References")]
-    public PlayerMovement pm;
+    public PlayerMovementAdvanced pm;
     public Transform orientation;
     public Transform cam;
     public Rigidbody rb;
@@ -50,6 +50,7 @@ public class LedgeGrabbing : MonoBehaviour
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
         bool anyInputKeyPressed = horizontalInput != 0 || verticalInput != 0;
+
         // SubState 1 - Holding onto ledge
         if (holding)
         {
@@ -69,6 +70,7 @@ public class LedgeGrabbing : MonoBehaviour
             else exitingLedge = false;
         }
     }
+
     private void LedgeDetection()
     {
         bool ledgeDetected = Physics.SphereCast(transform.position, ledgeSphereCastRadius, cam.forward, out ledgeHit, ledgeDetectionLength, whatIsLedge);
@@ -118,9 +120,9 @@ public class LedgeGrabbing : MonoBehaviour
         float distanceToLedge = Vector3.Distance(transform.position, currLedge.position);
 
         // Move player towards ledge
-        if (distanceToLedge > 1f)
+        if(distanceToLedge > 1f)
         {
-            if (rb.velocity.magnitude < moveToLedgeSpeed)
+            if(rb.velocity.magnitude < moveToLedgeSpeed)
                 rb.AddForce(directionToLedge.normalized * moveToLedgeSpeed * 1000f * Time.deltaTime);
         }
 
