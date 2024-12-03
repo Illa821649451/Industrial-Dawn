@@ -8887,7 +8887,7 @@ MonoBehaviour:
   groundDrag: 4
   jumpForce: 5
   jumpCooldown: 0.25
-  airMultiplier: 0
+  airMultiplier: 0.4
   crouchSpeed: 3.5
   crouchYScale: 0.5
   jumpKey: 32
@@ -19898,17 +19898,17 @@ MonoBehaviour:
   jumpSpeed: 10
   gravity: 20
   rotationSpeed: 3
-  slideForce: 29.07
+  slideForce: 5
   cameraTransform: {fileID: 828655811}
   playerCamera: {fileID: 828655809}
-  weaponCamera: {fileID: 1167224693}
+  weaponCamera: {fileID: 0}
   fovSpeed: 5
   isCrouched: 0
-  crouchSpeed: 10
-  normalHeight: 4.62
-  crouchHeight: 3
-  offset: {x: 0, y: 2, z: 0}
-  player: {fileID: 6049304844000957213}
+  crouchSpeed: 0
+  normalHeight: 0
+  crouchHeight: 0
+  offset: {x: 0, y: 0, z: 0}
+  player: {fileID: 0}
   moveHorizontal: 0
   moveVertical: 0
 --- !u!114 &6393037898874767786
