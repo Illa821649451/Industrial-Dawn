@@ -27,6 +27,7 @@ public class PlayerClimbing : MonoBehaviour
     [Header("Ledge Detection")]
     public float ledgeDetectionLength;
     public float ledgeSphereCastRadius;
+    private Transform Ledge;
     public LayerMask whatIsLedge;
 
     private Transform lastLedge;
@@ -78,6 +79,7 @@ public class PlayerClimbing : MonoBehaviour
         if (!ledgeDetected) return;
 
         float distanceToLedge = Vector3.Distance(transform.position, ledgeHit.transform.position);
+        Ledge = ledgeHit.transform;
 
         if (ledgeHit.transform == lastLedge) return;
 
@@ -102,7 +104,9 @@ public class PlayerClimbing : MonoBehaviour
     {
         holding = true;
 
-        pm.unlimited = true;
+        transform.SetParent(Ledge);
+
+        //pm.unlimited = true;
         pm.restricted = true;
 
         currLedge = ledgeHit.transform;
@@ -139,6 +143,7 @@ public class PlayerClimbing : MonoBehaviour
 
     private void ExitLedgeHold()
     {
+        transform.SetParent(Ledge);
         exitingLedge = true;
         exitLedgeTimer = exitLedgeTime;
 
