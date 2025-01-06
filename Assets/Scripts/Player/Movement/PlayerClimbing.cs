@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerClimbing : MonoBehaviour
 {
@@ -28,12 +30,24 @@ public class PlayerClimbing : MonoBehaviour
     public float ledgeDetectionLength;
     public float ledgeSphereCastRadius;
     private Transform Ledge;
-    public LayerMask whatIsLedge;
+    [SerializeField] private LayerMask climablePipeLayer;
+    private bool alrPressed = false;
+
+    public LayerMask ledge;
+    public bool detectedLedge;
+    public LayerMask screw;
+    public bool detectedScrew;
+    public LayerMask wPipe;
+    public bool detectedWPipe;
+    public LayerMask climablePipe;
+    public bool detectedClimablePipe;
 
     private Transform lastLedge;
     private Transform currLedge;
 
     private RaycastHit ledgeHit;
+
+    public float moveSpeed;
 
     [Header("Exiting")]
     public bool exitingLedge;
@@ -48,23 +62,25 @@ public class PlayerClimbing : MonoBehaviour
 
     private void SubStateMachine()
     {
-        float horizontalInput = Input.GetAxisRaw("Horizontal");
-        float verticalInput = Input.GetAxisRaw("Vertical");
-        bool anyInputKeyPressed = horizontalInput != 0 || verticalInput != 0;
-
-        // SubState 1 - Holding onto ledge
         if (holding)
         {
             FreezeRigidbodyOnLedge();
-
+            if (detectedLedge)
+            {
+                float horizontalInput = Input.GetAxis("Horizontal");
+                Vector3 move = transform.right * horizontalInput * moveSpeed * Time.deltaTime;
+                rb.velocity = new Vector3(move.x, rb.velocity.y, rb.velocity.z);
+            }
+            if (detectedClimablePipe)
+            {
+                float verticaInput = Input.GetAxis("Vertical");
+                Vector3 move = transform.forward * verticaInput * moveSpeed * Time.deltaTime;
+                transform.Translate(move);
+            }
             timeOnLedge += Time.deltaTime;
 
-            if (timeOnLedge > minTimeOnLedge && anyInputKeyPressed) ExitLedgeHold();
-
-            if (Input.GetKeyDown(jumpKey)) LedgeJump();
+            if (Input.GetKeyDown(jumpKey) && pm.isMoving == false) LedgeJump();
         }
-
-        // Substate 2 - Exiting Ledge
         else if (exitingLedge)
         {
             if (exitLedgeTimer > 0) exitLedgeTimer -= Time.deltaTime;
@@ -74,9 +90,26 @@ public class PlayerClimbing : MonoBehaviour
 
     private void LedgeDetection()
     {
-        bool ledgeDetected = Physics.SphereCast(transform.position, ledgeSphereCastRadius, cam.forward, out ledgeHit, ledgeDetectionLength, whatIsLedge);
+        RaycastHit ledgeHitTemp;
+        bool ledgeDetected = Physics.SphereCast(transform.position, ledgeSphereCastRadius, cam.forward, out ledgeHitTemp, ledgeDetectionLength, ledge);
 
-        if (!ledgeDetected) return;
+        RaycastHit screwHitTemp;
+        bool screwDetected = Physics.SphereCast(transform.position, ledgeSphereCastRadius, cam.forward, out screwHitTemp, ledgeDetectionLength, screw);
+
+        RaycastHit wPipeHitTemp;
+        bool wPipeDetected = Physics.SphereCast(transform.position, ledgeSphereCastRadius, cam.forward, out wPipeHitTemp, ledgeDetectionLength, wPipe);
+
+        if (!ledgeDetected && !screwDetected && !wPipeDetected) return;
+
+        detectedLedge = ledgeDetected;
+        detectedScrew = screwDetected;
+        detectedWPipe = wPipeDetected;
+
+        if (ledgeDetected) ledgeHit = ledgeHitTemp;
+        else if (screwDetected) ledgeHit = screwHitTemp;
+        else if (wPipeDetected) ledgeHit = wPipeHitTemp;
+
+        if (ledgeHit.transform == null) return;
 
         float distanceToLedge = Vector3.Distance(transform.position, ledgeHit.transform.position);
         Ledge = ledgeHit.transform;
@@ -106,44 +139,110 @@ public class PlayerClimbing : MonoBehaviour
 
         transform.SetParent(Ledge);
 
-        //pm.unlimited = true;
         pm.restricted = true;
 
-        currLedge = ledgeHit.transform;
-        lastLedge = ledgeHit.transform;
+        if(!alrPressed)
+        {
+            currLedge = ledgeHit.transform;
+            lastLedge = ledgeHit.transform;
+        }
 
         rb.useGravity = false;
         rb.velocity = Vector3.zero;
     }
-
+    private void OnTriggerStay(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & climablePipeLayer) != 0)
+        {
+            //ÒÓÒ ÍÀÄÀ ÂÑÒÀÂÈÒÈ ÀÊÒÈÂÀÖ²Þ ÏËÀØÊÈ Ò²ÏÀ ÍÀÆÌÈ E ØÎÁ ÍÀ×ÀÒÈ Ë²ÇÒÈ ÏÎ ÒÐÓÁ²
+            if(Input.GetKey(KeyCode.E)&& !alrPressed)
+            {
+                alrPressed = true;
+                EnterLedgeHold();
+                detectedClimablePipe = true;
+                currLedge = other.gameObject.transform;
+            }
+        }
+    }
     private void FreezeRigidbodyOnLedge()
     {
         rb.useGravity = false;
+        Vector3 playerPosition = transform.position;
+        Vector3 localTargetPosition = Vector3.zero;
+        Vector3 targetPosition = playerPosition;
 
-        Vector3 directionToLedge = currLedge.position - transform.position;
-        float distanceToLedge = Vector3.Distance(transform.position, currLedge.position);
-
-        // Move player towards ledge
-        if (distanceToLedge > 1f)
+        if (detectedLedge)
         {
-            if (rb.velocity.magnitude < moveToLedgeSpeed)
-                rb.AddForce(directionToLedge.normalized * moveToLedgeSpeed * 1000f * Time.deltaTime);
+            localTargetPosition = currLedge.InverseTransformPoint(playerPosition);
+            localTargetPosition.y = 0f;
+            localTargetPosition.z = 1f;
+            targetPosition = currLedge.TransformPoint(localTargetPosition);
+            Quaternion targetRotation = Quaternion.Euler(0f, 0f, 0f);
+            transform.rotation = targetRotation;
+            pm.onLedge = true;
+        }
+        else if (detectedScrew)
+        {
+            localTargetPosition = new Vector3(-0.06400144f, 0.8653333f, 0f);
+            targetPosition = currLedge.TransformPoint(localTargetPosition);
+        }
+        else if (detectedWPipe)
+        {
+            localTargetPosition = new Vector3(-0.06400144f, 0.8653333f, 0f);
+            targetPosition = currLedge.TransformPoint(localTargetPosition);
+        }
+        else if (detectedClimablePipe)
+        {
+            localTargetPosition = currLedge.InverseTransformPoint(playerPosition);
+            localTargetPosition.x = -1.25f;
+            localTargetPosition.z = 0f;
+            targetPosition = currLedge.TransformPoint(localTargetPosition);
+            transform.position = targetPosition;
+
+            pm.onPipe = true;
         }
 
-        // Hold onto ledge
+        Vector3 directionToLedge = targetPosition - transform.position;
+        float distanceToLedge = directionToLedge.magnitude;
+
+        if (distanceToLedge > 0.1f)
+        {
+            if (rb.velocity.magnitude < moveToLedgeSpeed)
+            {
+                rb.velocity = Vector3.zero;
+                rb.AddForce(directionToLedge.normalized * moveToLedgeSpeed * 1000f * Time.deltaTime);
+            }               
+        }
         else
         {
             if (!pm.freeze) pm.freeze = true;
             if (pm.unlimited) pm.unlimited = false;
         }
 
-        // Exiting if something goes wrong
         if (distanceToLedge > maxLedgeGrabDistance) ExitLedgeHold();
     }
 
-    private void ExitLedgeHold()
+    public void ExitLedgeHold()
     {
-        transform.SetParent(Ledge);
+        alrPressed = false;
+
+        pm.onLedge = false;
+        pm.onPipe = false;
+
+        pm.canMoveRight = true;
+        pm.canMoveLeft = true;
+
+        pm.canMoveUp = true;
+
+        pm.isMoving = false;
+        pm.pipeDown = false;
+
+        detectedLedge = false;
+        detectedScrew = false;
+        detectedWPipe = false;
+        detectedClimablePipe = false;
+
+        transform.SetParent(null);
         exitingLedge = true;
         exitLedgeTimer = exitLedgeTime;
 

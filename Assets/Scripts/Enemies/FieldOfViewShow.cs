@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(EnemyRevolver))]
-public class FieldOfViewShow : Editor
+//[CustomEditor(typeof(EnemyRevolver))]
+public class FieldOfViewShow// : Editor
 {
-    private void OnSceneGUI()
+    /*private void OnSceneGUI()
     {
         
         EnemyRevolver fov = (EnemyRevolver)target;
@@ -31,5 +31,5 @@ public class FieldOfViewShow : Editor
         angleInDegrees += eulerY;
 
         return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
-    }
+    }*/
 }
