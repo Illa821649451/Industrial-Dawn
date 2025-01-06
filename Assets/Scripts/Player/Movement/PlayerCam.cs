@@ -12,21 +12,16 @@ public class PlayerCam : MonoBehaviour
     float xRotation;
     float yRotation;
 
-    PlayerMovementAdvanced pm;
-
-    private Transform ledgeTransform;
-
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        pm = GetComponentInParent<PlayerMovementAdvanced>();
     }
 
     private void Update()
     {
-        float mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensX;
-        float mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensY;
+        float mouseX = Input.GetAxisRaw("Mouse X") * sensX;
+        float mouseY = Input.GetAxisRaw("Mouse Y") * sensY;
 
         yRotation += mouseX;
 

@@ -19,7 +19,6 @@ public class PlayerSliding : MonoBehaviour
     private float startYScale;
 
     [Header("Input")]
-    public KeyCode slideKey = KeyCode.LeftControl;
     private float horizontalInput;
     private float verticalInput;
 
@@ -37,11 +36,14 @@ public class PlayerSliding : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        if (Input.GetKeyDown(slideKey) && (horizontalInput != 0 || verticalInput != 0))
+        if (Input.GetKeyDown(pm.crouchKey) && (horizontalInput != 0 || verticalInput != 0) && pm.isSprinting == true)
             StartSlide();
 
-        if (Input.GetKeyUp(slideKey) && pm.sliding)
+        if (Input.GetKeyUp(pm.crouchKey) && pm.sliding)
+        {
+            pm.isCrouching = false;
             StopSlide();
+        }          
     }
 
     private void FixedUpdate()
@@ -64,15 +66,12 @@ public class PlayerSliding : MonoBehaviour
     {
         Vector3 inputDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
-        // sliding normal
         if (!pm.OnSlope() || rb.velocity.y > -0.1f)
         {
             rb.AddForce(inputDirection.normalized * slideForce, ForceMode.Force);
 
             slideTimer -= Time.deltaTime;
         }
-
-        // sliding down a slope
         else
         {
             rb.AddForce(pm.GetSlopeMoveDirection(inputDirection) * slideForce, ForceMode.Force);
@@ -85,6 +84,7 @@ public class PlayerSliding : MonoBehaviour
     private void StopSlide()
     {
         pm.sliding = false;
+        
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, startYScale, playerObj.localScale.z);
     }

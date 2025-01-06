@@ -62,8 +62,6 @@ public class PlayerClimbing : MonoBehaviour
 
     private void SubStateMachine()
     {
-
-        // SubState 1 - Holding onto ledge
         if (holding)
         {
             FreezeRigidbodyOnLedge();
@@ -83,8 +81,6 @@ public class PlayerClimbing : MonoBehaviour
 
             if (Input.GetKeyDown(jumpKey) && pm.isMoving == false) LedgeJump();
         }
-
-        // Substate 2 - Exiting Ledge
         else if (exitingLedge)
         {
             if (exitLedgeTimer > 0) exitLedgeTimer -= Time.deltaTime;
@@ -209,7 +205,6 @@ public class PlayerClimbing : MonoBehaviour
         Vector3 directionToLedge = targetPosition - transform.position;
         float distanceToLedge = directionToLedge.magnitude;
 
-        // Move player towards ledge
         if (distanceToLedge > 0.1f)
         {
             if (rb.velocity.magnitude < moveToLedgeSpeed)
@@ -218,15 +213,12 @@ public class PlayerClimbing : MonoBehaviour
                 rb.AddForce(directionToLedge.normalized * moveToLedgeSpeed * 1000f * Time.deltaTime);
             }               
         }
-
-        // Hold onto ledge
         else
         {
             if (!pm.freeze) pm.freeze = true;
             if (pm.unlimited) pm.unlimited = false;
         }
 
-        // Exiting if something goes wrong
         if (distanceToLedge > maxLedgeGrabDistance) ExitLedgeHold();
     }
 
