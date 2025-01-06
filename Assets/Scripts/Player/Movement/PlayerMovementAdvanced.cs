@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerMovementAdvanced : MonoBehaviour
 {
     [Header("Movement")]
-    private float moveSpeed;
+    public float moveSpeed;
     public float walkSpeed;
     public float sprintSpeed;
     public float slideSpeed;
@@ -29,6 +29,32 @@ public class PlayerMovementAdvanced : MonoBehaviour
     public float crouchYScale;
     private float startYScale;
 
+    [Header("Climbing")]
+    public bool isMoving;
+    public float climbSpeed;
+    public float moveDistance;
+
+    public bool pipeDown = false;
+    public bool pipeUp = false;
+    public bool OnPlace = false;
+    
+    public LayerMask requiredLayerLedge;
+    public LayerMask requiredLayerPipe;
+    public bool isInLedgeTrigger = false;
+    public Transform ledgeObject = null;
+
+    public float maxXPositionLeft = 1.5f;
+    public float maxXPositionRight = -1.5f;
+    public float maxYPositionDown;
+    public float maxYPositionUp;
+
+    PlayerClimbing pc;
+
+    public bool canMoveLeft = true;
+    public bool canMoveRight = true;
+
+    public bool canMoveUp = true;
+
     [Header("Keybinds")]
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode sprintKey = KeyCode.LeftShift;
@@ -37,7 +63,7 @@ public class PlayerMovementAdvanced : MonoBehaviour
     [Header("Ground Check")]
     public float playerHeight;
     public LayerMask whatIsGround;
-    bool grounded;
+    public bool grounded;
 
     [Header("Slope Handling")]
     public float maxSlopeAngle;
@@ -50,7 +76,10 @@ public class PlayerMovementAdvanced : MonoBehaviour
     float horizontalInput;
     float verticalInput;
 
-    Vector3 moveDirection;
+    public bool onLedge;
+    public bool onPipe;
+
+    [HideInInspector]public Vector3 moveDirection;
 
     Rigidbody rb;
 
@@ -67,6 +96,7 @@ public class PlayerMovementAdvanced : MonoBehaviour
     }
 
     public bool sliding;
+    public bool climbing;
 
     public bool freeze;
     public bool unlimited;
@@ -77,6 +107,7 @@ public class PlayerMovementAdvanced : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+        pc = GetComponent<PlayerClimbing>();
 
         readyToJump = true;
 
@@ -146,7 +177,6 @@ public class PlayerMovementAdvanced : MonoBehaviour
             moveSpeed = 999f;
             return;
         }
-        // Mode - Sliding
         if (sliding)
         {
             state = MovementState.sliding;
@@ -228,6 +258,110 @@ public class PlayerMovementAdvanced : MonoBehaviour
 
     private void MovePlayer()
     {
+        if(onLedge)
+        {
+            if (Input.GetKey(KeyCode.D) && canMoveRight && !isMoving)
+            {
+                isMoving = true;
+                Vector3 newPosition = transform.localPosition + new Vector3(-moveDistance, 0, 0);
+                Vector3 WorldNewPosition = transform.parent.TransformPoint(newPosition);
+                if (isInLedgeTrigger)
+                {
+                    if (transform.parent.CompareTag("LedgeRight"))
+                    {
+                        if (newPosition.x <= maxXPositionRight)
+                        {
+                            newPosition.x = maxXPositionRight;
+                            WorldNewPosition = transform.parent.TransformPoint(newPosition);
+                            canMoveRight = false;
+                        }
+                        else 
+                            canMoveRight = true;
+                    }
+                    else
+                        canMoveLeft = true;
+                }
+                StartCoroutine(MoveToPosition(WorldNewPosition, climbSpeed));                
+            }
+            if (Input.GetKey(KeyCode.A) && canMoveLeft && !isMoving)
+            {
+                isMoving = true;
+                Vector3 newPosition = transform.localPosition + new Vector3(moveDistance, 0, 0);
+                Vector3 WorldNewPosition = transform.parent.TransformPoint(newPosition);
+                if (isInLedgeTrigger)
+                {
+                    if (transform.parent.CompareTag("LedgeLeft"))
+                    {
+                        if (newPosition.x >= maxXPositionLeft)
+                        {
+                            newPosition.x = maxXPositionLeft;
+                            WorldNewPosition = transform.parent.TransformPoint(newPosition);
+                            canMoveLeft = false;
+                        }
+                        else
+                            canMoveLeft = true;
+                    }
+                    else
+                        canMoveRight = true;
+                }
+                StartCoroutine(MoveToPosition(WorldNewPosition, climbSpeed));
+            }
+
+        }
+        if (onPipe)
+        {
+            if (Input.GetKey(KeyCode.W) && isMoving == false)
+            {
+                isMoving = true;
+                Vector3 newPosition = transform.position + new Vector3(0, moveDistance, 0);
+                if (pipeUp && !pipeDown)
+                {
+                    if (newPosition.y >= maxYPositionUp)
+                    {
+                        if (OnPlace)
+                        {
+                            Vector3 localPos = new Vector3(0.25f, 4.5f, 0);
+                            Vector3 worldPos = transform.parent.TransformPoint(localPos);
+                            pc.ExitLedgeHold();
+                            StartCoroutine(MoveToPosition(worldPos, climbSpeed));
+                            OnPlace = false;
+                            onPipe = false;
+                            return;
+                        }
+                        Vector3 newLocalPos = new Vector3(0, maxYPositionUp, 0);
+                        Vector3 newWorldPos = transform.parent.TransformPoint(newLocalPos);
+                        newPosition.y = newWorldPos.y;
+                        OnPlace = true;
+                    }
+                    else
+                        pipeUp = false;
+                }
+                else
+                    pipeUp = false;
+                StartCoroutine(MoveToPosition(newPosition, climbSpeed));
+            }
+
+            if (Input.GetKey(KeyCode.S) && isMoving == false)
+            {
+                isMoving = true;
+                Vector3 newPosition = transform.position + new Vector3(0, -moveDistance,0);
+                canMoveUp = true;
+                if (pipeDown)
+                {
+                    if (newPosition.y <= maxYPositionDown)
+                    {
+                        transform.SetParent(null);
+                        pc.ExitLedgeHold();
+                        return;
+                    }
+                    else 
+                        pipeDown = false;
+                }
+                else
+                    pipeDown = false;
+                StartCoroutine(MoveToPosition(newPosition, climbSpeed));
+            }
+        }
         if (restricted) return;
         // calculate movement direction
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
@@ -251,6 +385,74 @@ public class PlayerMovementAdvanced : MonoBehaviour
 
         // turn gravity off while on slope
         rb.useGravity = !OnSlope();
+    }
+    private IEnumerator MoveToPosition(Vector3 targetPosition, float duration)
+    {
+        Vector3 startPosition = transform.position;
+        float elapsedTime = 0;
+
+        while (elapsedTime < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+        isMoving = false;
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        if ((requiredLayerLedge.value & (1 << other.gameObject.layer)) > 0)
+        {
+            transform.SetParent(other.transform);
+            ledgeObject = other.transform;
+
+            if (other.CompareTag("LedgeLeft"))
+            {
+                isInLedgeTrigger = true;
+                ledgeObject = other.transform;
+            }
+            else if (other.CompareTag("LedgeRight"))
+            {
+                isInLedgeTrigger = true;
+                ledgeObject = other.transform;
+            }
+        }
+        if ((requiredLayerPipe.value & (1 << other.gameObject.layer)) > 0)
+        {
+            transform.SetParent(other.transform);
+
+            if (other.CompareTag("PipeDown"))
+            {
+                pipeDown = true;
+            }
+            else if (other.CompareTag("PipeUp"))
+            {
+                pipeUp = true;
+            }
+            else
+            {
+                pipeUp = false;
+                pipeDown = false;
+                OnPlace = false;
+            }
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("LedgeLeft") || other.CompareTag("LedgeRight"))
+        {
+            isInLedgeTrigger = false;
+            ledgeObject = null;
+        }
+        if(other.CompareTag("PipeDown") || other.CompareTag("PipeUp"))
+        {
+            transform.SetParent(null);
+            pipeDown = false;
+            pipeUp = false;
+        }
+        
     }
 
     private void SpeedControl()
